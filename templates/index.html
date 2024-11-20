@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEQ와 Hash 값 생성</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>SEQ, Hash값 생성</h1>
+    <form id="hashForm">
+        <label for="startSeq">시작 SEQ:</label>
+        <input type="number" id="startSeq" name="startSeq" required><br><br>
+        <label for="endSeq">끝 SEQ:</label>
+        <input type="number" id="endSeq" name="endSeq" required><br><br>
+        <button type="submit">SEQ, Hash 값 생성</button>
+    </form>
+    <h2>결과</h2>
+    <button id="copyButton" style="display:none;">결과 복사하기</button>
+    <button id="downloadButton" style="display:none;">JSON 파일 다운로드</button>
+    <div id="hashresultjson"></div>
+
+    <script>
+        document.getElementById('hashForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const startSeq = document.getElementById('startSeq').value;
+            const endSeq = document.getElementById('endSeq').value;
+
+            const response = await fetch(`/generate?startSeq=${startSeq}&endSeq=${endSeq}`);
+            const result = await response.json();
+
+            const resultDiv = document.getElementById('hashresultjson');
+            resultDiv.innerHTML = '<pre>' + JSON.stringify(result, null, 2) + '</pre>';
+
+            // Show buttons for copy and download
+            document.getElementById('copyButton').style.display = 'inline';
+            document.getElementById('downloadButton').style.display = 'inline';
+
+            // Enable download of JSON file
+            document.getElementById('downloadButton').addEventListener('click', function() {
+                const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'hash_results.json';
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        });
+
+        // Clipboard copy function
+        document.getElementById('copyButton').addEventListener('click', function() {
+            const resultDiv = document.getElementById('hashresultjson');
+            const textToCopy = resultDiv.innerText;
+
+            navigator.clipboard.writeText(textToCopy).then(function() {
+                alert('결과가 클립보드에 복사되었습니다!');
+            }).catch(function(error) {
+                alert('복사에 실패했습니다: ' + error);
+            });
+        });
+    </script>
+</body>
+</html>
